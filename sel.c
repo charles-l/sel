@@ -70,10 +70,12 @@ void quit(row_t *rows) {
 void input(row_t *rows, int argc, char **argv) {
     switch (getch()) {
         case 'j':
-            rows->selected++;
+            if(rows->selected < rows->len - 1)
+                rows->selected++;
             break;
         case 'k':
-            rows->selected--;
+            if(rows->selected > 0)
+                rows->selected--;
             break;
         case 'q':
             quit(rows);

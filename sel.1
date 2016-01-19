@@ -1,0 +1,20 @@
+.TH SEL 1 "JANUARY 2016" Linux "User Manuals"
+.SH NAME
+sel \- simple menu selection
+.SH SYNOPSIS
+.B sel
+.I <command>
+.SH USAGE
+.I sel <command>
+.RS 3
+Run command on selection
+.SH DESCRIPTION
+A simple way to select an option from stdin.
+.SH EXAMPLES
+.B ls | sel vim
+.RS 3
+Run vim on the selected file in the current directory.
+.SH BUGS
+- Lacks scrolling
+.SH AUTHOR
+Charles Saternos (http://github.com/charles-l)
