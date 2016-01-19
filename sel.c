@@ -50,9 +50,11 @@ void display(row_t *rows) {
     for(int i = 0; i < rows->len; i++)
     {
         if (i == rows->selected) {
-            mvaddch(i, 0, '>');
+            attron(COLOR_PAIR(1));
+        } else {
+            attroff(COLOR_PAIR(1));
         }
-        mvaddstr(i, 1, (const char *) rows->strings[i]);
+        mvaddstr(i, 0, (const char *) rows->strings[i]);
     }
     refresh();
 }
@@ -119,11 +121,14 @@ int main(int argc, char **argv) {
 
     // ncurses boilerplate
     w = initscr();
+    start_color();
     cbreak();
     noecho();
     curs_set(0);
     clear();
     refresh();
+
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
 
     while(1) {
         display(rows);
