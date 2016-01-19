@@ -21,5 +21,8 @@ uninstall: $(BIN)
 	rm $(PREFIX)/bin/$(BIN)
 	rm $(PREFIX)/share/man/man1/sel.1
 
+dev:
+	ls *.c | entr sh -c 'make | head -n10'
+
 clean:
 	rm $(OBJ) $(BIN)
