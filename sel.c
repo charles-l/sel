@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
-#include <stderr.h>
+#include <err.h>
 
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 1024
@@ -55,7 +55,7 @@ void quit(row_t *rows) {
     quitw(rows);
 }
 
-void input(row_t *rows)
+void input(row_t *rows, int argc, char **argv)
 {
     switch (getch()) {
         case 'j':
@@ -70,8 +70,11 @@ void input(row_t *rows)
         case '\n':
             endwin();
             char *s = rows->strings[rows->selected];
-            s[strlen(s) - 1] = '\0'; // overwrite newline. kinda hacky... meh...
-            puts(s);
+            char *ns = malloc(MAX_LINE_LEN);
+            snprintf(ns, MAX_LINE_LEN, "%s %s", argv[1], s);
+            fputs(ns, stderr);
+            system(ns);
+            free(ns);
             quitw(rows);
             break;
     }
@@ -80,6 +83,10 @@ void input(row_t *rows)
 int main(int argc, char **argv)
 {
     WINDOW *w;
+    if(argc < 2) {
+        errx(1, "no commands to run on selection");
+    }
+
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
@@ -104,7 +111,7 @@ int main(int argc, char **argv)
 
     while(1) {
         display(rows);
-        input(rows);
+        input(rows, argc, argv);
     }
 
     // erm... just in case I guess?
