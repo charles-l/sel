@@ -13,6 +13,19 @@ typedef struct row {
     int selected;
 } row_t;
 
+// prototypes
+row_t *rows_new();
+void rows_add(row_t *rows, char *str);
+void rows_destroy(row_t *rows);
+void input(row_t *rows, int argc, char **argv);
+void display(row_t *rows);
+void usage();
+void quitw(row_t *rows);
+void quit(row_t *rows);
+int main(int argc, char **argv);
+
+//
+
 row_t *rows_new() {
     row_t *rows = malloc(sizeof(row_t));
     rows->len = 0;
@@ -32,8 +45,7 @@ void rows_destroy(row_t *rows) {
     rows = NULL;
 }
 
-void display(row_t *rows)
-{
+void display(row_t *rows) {
     clear();
     for(int i = 0; i < rows->len; i++)
     {
@@ -55,8 +67,7 @@ void quit(row_t *rows) {
     quitw(rows);
 }
 
-void input(row_t *rows, int argc, char **argv)
-{
+void input(row_t *rows, int argc, char **argv) {
     switch (getch()) {
         case 'j':
             rows->selected++;
@@ -80,8 +91,11 @@ void input(row_t *rows, int argc, char **argv)
     }
 }
 
-int main(int argc, char **argv)
-{
+void usage() {
+    puts("usage: sel COMMAND [BINDINGS]");
+}
+
+int main(int argc, char **argv) {
     WINDOW *w;
     if(argc < 2) {
         errx(1, "no commands to run on selection");
