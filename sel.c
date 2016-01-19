@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
+#include <stderr.h>
 
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 1024
@@ -44,10 +45,14 @@ void display(row_t *rows)
     refresh();
 }
 
-void quit(row_t *rows) {
+void quitw(row_t *rows) {
     rows_destroy(rows);
-    endwin();
     exit(0);
+}
+
+void quit(row_t *rows) {
+    endwin();
+    quitw(rows);
 }
 
 void input(row_t *rows)
@@ -63,8 +68,11 @@ void input(row_t *rows)
             quit(rows);
             break;
         case '\n':
-            puts(rows->strings[rows->selected]);
-            quit(rows);
+            endwin();
+            char *s = rows->strings[rows->selected];
+            s[strlen(s) - 1] = '\0'; // overwrite newline. kinda hacky... meh...
+            puts(s);
+            quitw(rows);
             break;
     }
 }
