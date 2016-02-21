@@ -11,6 +11,7 @@ typedef struct row {
     char *strings[MAX_LINES];
     int len;
     int selected;
+    int start;
 } row_t;
 
 // prototypes
@@ -30,6 +31,7 @@ row_t *rows_new() {
     row_t *rows = malloc(sizeof(row_t));
     rows->len = 0;
     rows->selected = 0;
+    rows->start = 0;
     return rows;
 }
 
@@ -46,15 +48,14 @@ void rows_destroy(row_t *rows) {
 }
 
 void display(row_t *rows) {
-    clear();
-    for(int i = 0; i < rows->len; i++)
+    for(int i = 0; i < LINES; i++)
     {
         if (i == rows->selected) {
             attron(COLOR_PAIR(1));
         } else {
             attroff(COLOR_PAIR(1));
         }
-        mvaddstr(i, 0, (const char *) rows->strings[i]);
+        mvaddstr(i, 0, (const char *) rows->strings[rows->start + i]);
     }
     refresh();
 }
@@ -72,12 +73,22 @@ void quit(row_t *rows) {
 void input(row_t *rows, int argc, char **argv) {
     switch (getch()) {
         case 'j':
-            if(rows->selected < rows->len - 1)
-                rows->selected++;
+            if(rows->start + rows->selected < rows->len - 1)
+            {
+                if(rows->selected >= LINES - 3 && rows->start + rows->selected + 3 < rows->len)
+                    rows->start++;
+                else
+                    rows->selected++;
+            }
             break;
         case 'k':
-            if(rows->selected > 0)
-                rows->selected--;
+            if(rows->start + rows->selected > 0)
+            {
+                if(rows->selected < 3 && rows->start + rows->selected - 2 > 0)
+                    rows->start--;
+                else
+                    rows->selected--;
+            }
             break;
         case 'q':
             quit(rows);
