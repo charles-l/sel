@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
+#include <unistd.h>
 #include <err.h>
+#include <ctype.h>
 
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 1024
+#define NORM_ASCII(c) (c - 65) // normalize an ascii character to zero
 
 typedef struct row {
     char *strings[MAX_LINES];
@@ -14,11 +17,13 @@ typedef struct row {
     int start;
 } row_t;
 
+int fast_quit = 0;
+
 // prototypes
 row_t *rows_new();
 void rows_add(row_t *rows, char *str);
 void rows_destroy(row_t *rows);
-void input(row_t *rows, int argc, char **argv);
+void input(row_t *rows, int argc, char *command, char **binds);
 void display(row_t *rows);
 void usage();
 void quitw(row_t *rows);
@@ -70,8 +75,11 @@ void quit(row_t *rows) {
     quitw(rows);
 }
 
-void input(row_t *rows, int argc, char **argv) {
-    switch (getch()) {
+void input(row_t *rows, int argc, char *command, char **binds) {
+    char *exec;
+    char *s = rows->strings[rows->selected]; // current line
+    char c;
+    switch ((c = getch())) {
         case 'j':
             if(rows->start + rows->selected < rows->len - 1)
             {
@@ -94,15 +102,28 @@ void input(row_t *rows, int argc, char **argv) {
             quit(rows);
             break;
         case '\n':
-            endwin();
-            char *s = rows->strings[rows->selected];
-            char *ns = malloc(MAX_LINE_LEN);
-            snprintf(ns, MAX_LINE_LEN, "%s %s", argv[1], s);
-            fputs(ns, stderr);
-            system(ns);
-            free(ns);
-            quitw(rows);
+            if(command) {
+                exec = malloc(MAX_LINE_LEN);
+                snprintf(exec, MAX_LINE_LEN, "%s %s", command, s);
+                system(exec);
+                free(exec);
+            } else {
+                endwin(); // gross hack (causes screen flicker)
+                printf("%s", s);
+            }
+
+            if(fast_quit) {
+                endwin();
+                quitw(rows);
+            }
             break;
+        default:
+            if(binds[NORM_ASCII(toupper(c))]) {
+                exec = malloc(MAX_LINE_LEN);
+                snprintf(exec, MAX_LINE_LEN, "%s %s", binds[NORM_ASCII(toupper(c))], s);
+                system(exec);
+                free(exec);
+            }
     }
 }
 
@@ -112,8 +133,24 @@ void usage() {
 
 int main(int argc, char **argv) {
     WINDOW *w;
-    if(argc < 2) {
-        errx(1, "no commands to run on selection");
+    char *command = NULL;
+    char *binds[26] = {NULL};
+    int c;
+    while((c = getopt(argc, argv, "qc:A:B:C:D:E:F:G:H:I:L:M:N:O:P:R:S:T:U:V:W:X:Y:Z:")) != -1) {
+        switch(c) {
+            case 'q':
+                fast_quit = 1;
+                break;
+            case 'c':
+                command = optarg;
+                break;
+            case '?':
+                exit(2);
+            default:
+                if(isupper(c)) {
+                    binds[NORM_ASCII(c)] = optarg;
+                }
+        }
     }
 
     char *line = NULL;
@@ -143,7 +180,7 @@ int main(int argc, char **argv) {
 
     while(1) {
         display(rows);
-        input(rows, argc, argv);
+        input(rows, argc, command, binds);
     }
 
     // erm... just in case I guess?
