@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include <string.h>
-#include <unistd.h>
 #include <err.h>
 #include <ctype.h>
-
+#include "arg.h"
 #define MAX_LINES 1024
 #define MAX_LINE_LEN 1024
 #define NORM_ASCII(c) (c - 65) // normalize an ascii character to zero
@@ -17,9 +16,11 @@ typedef struct row {
     int start;
 } row_t;
 
+char *argv0 = "sel";
+
+// flags
 int fast_quit = 0;
 
-// prototypes
 row_t *rows_new();
 void rows_add(row_t *rows, char *str);
 void rows_destroy(row_t *rows);
@@ -128,30 +129,29 @@ void input(row_t *rows, int argc, char *command, char **binds) {
 }
 
 void usage() {
-    puts("usage: sel COMMAND [BINDINGS]");
+    puts("usage: sel [BINDINGS] COMMAND");
 }
 
 int main(int argc, char **argv) {
     WINDOW *w;
-    char *command = NULL;
     char *binds[26] = {NULL};
-    int c;
-    while((c = getopt(argc, argv, "qc:A:B:C:D:E:F:G:H:I:L:M:N:O:P:R:S:T:U:V:W:X:Y:Z:")) != -1) {
-        switch(c) {
-            case 'q':
-                fast_quit = 1;
-                break;
-            case 'c':
-                command = optarg;
-                break;
-            case '?':
-                exit(2);
-            default:
-                if(isupper(c)) {
-                    binds[NORM_ASCII(c)] = optarg;
-                }
-        }
-    }
+    ARGBEGIN {
+        case 'q':
+            fast_quit = 1;
+            break;
+        case 'h':
+            usage();
+            exit(0);
+        default:
+            if(isupper(ARGC())) {
+                if(argc > 0 && argv[1][0] != '-') {
+                    binds[NORM_ASCII(ARGC())] = ARGOPT();
+                } else
+                    errx(2, "flag '%c' requires a command", ARGC());
+            }
+    } ARGEND
+
+    if(argc < 1) errx(1, "no default command passed");
 
     char *line = NULL;
     size_t len = 0;
@@ -180,9 +180,6 @@ int main(int argc, char **argv) {
 
     while(1) {
         display(rows);
-        input(rows, argc, command, binds);
+        input(rows, argc, argv[0], binds);
     }
-
-    // erm... just in case I guess?
-    quit(rows);
 }

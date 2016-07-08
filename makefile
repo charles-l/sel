@@ -4,14 +4,14 @@ INSTALL=install
 
 BIN=sel
 OBJ=sel.o
-CFLAGS=
+CFLAGS=-g
 LDFLAGS=-lncurses
 
 $(BIN): $(OBJ)
 	$(CC) -o sel $(OBJ) $(CFLAGS) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 install: $(BIN)
 	$(INSTALL) $(BIN) $(PREFIX)/bin/
