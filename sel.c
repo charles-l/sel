@@ -19,7 +19,7 @@ typedef struct row {
 char *argv0 = "sel";
 
 // flags
-int fast_quit = 0;
+int fast_quit = 1;
 
 row_t *rows_new();
 void rows_add(row_t *rows, char *str);
@@ -103,27 +103,20 @@ void input(row_t *rows, int argc, char *command, char **binds) {
             quit(rows);
             break;
         case '\n':
-            if(command) {
-                exec = malloc(MAX_LINE_LEN);
-                snprintf(exec, MAX_LINE_LEN, "%s %s", command, s);
-                system(exec);
-                free(exec);
-            } else {
-                endwin(); // gross hack (causes screen flicker)
-                printf("%s", s);
-            }
-
-            if(fast_quit) {
-                endwin();
-                quitw(rows);
-            }
-            break;
+            exec = malloc(MAX_LINE_LEN);
+            snprintf(exec, MAX_LINE_LEN, "%s %s", command, s);
+            endwin();
+            system(exec);
+            free(exec);
+            if(fast_quit) quitw(rows);
         default:
             if(binds[NORM_ASCII(toupper(c))]) {
                 exec = malloc(MAX_LINE_LEN);
                 snprintf(exec, MAX_LINE_LEN, "%s %s", binds[NORM_ASCII(toupper(c))], s);
+                endwin();
                 system(exec);
                 free(exec);
+                if(fast_quit) quitw(rows);
             }
     }
 }
@@ -137,7 +130,7 @@ int main(int argc, char **argv) {
     char *binds[26] = {NULL};
     ARGBEGIN {
         case 'q':
-            fast_quit = 1;
+            fast_quit = 0;
             break;
         case 'h':
             usage();
