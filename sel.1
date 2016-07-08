@@ -3,18 +3,20 @@
 sel \- simple menu selection
 .SH SYNOPSIS
 .B sel
-.I <command>
+.I [COMMAND]
 .SH USAGE
-.I sel <command>
-.RS 3
-Run command on selection
+.I sel [BINDINGS] [COMMAND]
+.SH BINDINGS
+Bindings are set with a flag that is an uppercase alphabet character followed by a command.
 .SH DESCRIPTION
 A simple way to select an option from stdin.
 .SH EXAMPLES
 .B ls | sel vim
 .RS 3
 Run vim on the selected file in the current directory.
-.SH BUGS
-- Lacks scrolling
+.RS -3
+.B ls | sel -V vim -N nano -E ed vim
+.RS 3
+Run any of the specified editors (with the flag name being the bound key). Vim will be the default if the return key is used.
 .SH AUTHOR
 Charles Saternos (http://github.com/charles-l)
